@@ -33,13 +33,17 @@ if (is_readable('init_autoloader.php')) {
     throw new RuntimeException('Error: vendor/autoload.php could not be found. Did you run php composer.phar install?');
 }
 
-$appConfig = include 'config/application.config.php';
-if (file_exists('config/development.config.php')) {
-    $appConfig = ArrayUtils::merge($appConfig, include 'config/development.config.php');
+if(file_exists('config/container.php')) {
+    $serviceManager = include 'config/container.php';
+} else {
+    $appConfig = include 'config/application.config.php';
+    if (file_exists('config/development.config.php')) {
+        $appConfig = ArrayUtils::merge($appConfig, include 'config/development.config.php');
+    }
+    $application = Application::init($appConfig);
+    $serviceManager = $application->getServiceManager();
 }
 
-$application = Application::init($appConfig);
-
 /* @var $cli \Symfony\Component\Console\Application */
-$cli = $application->getServiceManager()->get('doctrine.cli');
+$cli = $serviceManager->get('doctrine.cli');
 exit($cli->run());
